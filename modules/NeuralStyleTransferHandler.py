@@ -99,9 +99,9 @@ class NeuralStyleTransferHandler:
         files_in_folder = len([file for file in os.listdir(f'{foldername}/')])
 
         if mode == "stylize_by_all_filters":
-            stylized_folder = f'output/stylized/{self.input_video_filename}_all_filter'
+            stylized_folder = f'output/stylized_frames/{self.input_video_filename}_all_filter'
         else: 
-            stylized_folder = f'output/stylized/{self.input_video_filename}'
+            stylized_folder = f'output/stylized_frames/{self.input_video_filename}'
 
         if not os.path.exists(stylized_folder):
             os.mkdir(stylized_folder)
@@ -146,5 +146,7 @@ class NeuralStyleTransferHandler:
 # stylize_batch("stylize_by_all_filters", 22)
 #stylize_batch("stylize_by_filter", 34)
 
+# if __name__ == "__main__":
+#     NeuralStyleTransferHandler('filter/67.jpg', 'test').stylize_batch('stylize_by_all_filters', place_in_folder)
 
 # Built upon: https://www.tensorflow.org/hub/tutorials/tf2_arbitrary_image_stylization
