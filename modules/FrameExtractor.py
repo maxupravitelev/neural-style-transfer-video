@@ -14,13 +14,6 @@ class FrameExtractor:
 
         self.extracted_frames_path:str = ''
 
-        # if not os.path.exists(self.extracted_frames_path):
-        #     try:
-        #         os.makedirs(self.extracted_frames_path)
-        #         log.debug(f'Output path for extracted frames: {self.extracted_frames_path}')
-        #     except Exception as e:
-        #         log.error(f'Output path for extracted frames FAILED: {e}')
-
         log.debug('FrameExtractor initialized')
 
     def create_subfolder(self):
@@ -32,14 +25,12 @@ class FrameExtractor:
 
         self.extracted_frames_path = os.path.join(parent_dir, self.input_video_filename)
 
-        log.debug(f'Output path for extracted frames: {self.extracted_frames_path}')
-
         if not os.path.exists(self.extracted_frames_path):
             try:
                 os.makedirs(self.extracted_frames_path)
-                log.debug(f'Output path for extracted frames: {self.extracted_frames_path}')
+                log.debug(f'Output path for resized frames: {self.extracted_frames_path}')
             except Exception as e:
-                log.error(f'Output path for extracted frames FAILED: {e}')
+                log.error(f'Output path for resized frames FAILED: {e}')
 
 
 
@@ -56,7 +47,7 @@ class FrameExtractor:
         
         cap = cv2.VideoCapture(self.input_video_path)
 
-        count:int = 0
+        file_count:int = 0
 
         while True:
             ret, image = cap.read()
@@ -64,11 +55,11 @@ class FrameExtractor:
             if not ret:
                 break
 
-            cv2.imwrite(os.path.join(self.extracted_frames_path, f"frame{count}.png"), image)     
-            log.info(f"{count} frames extracted")
-            count += 1
+            cv2.imwrite(os.path.join(self.extracted_frames_path, f"frame{file_count}.png"), image)     
+            log.debug(f"{file_count} frames extracted")
+            file_count += 1
 
-        log.info(f"{count} images are extracted in {self.extracted_frames_path}.")
+        log.info(f"{file_count} images are extracted in {self.extracted_frames_path}.")
 
         return self.extracted_frames_path, self.input_video_filename
 

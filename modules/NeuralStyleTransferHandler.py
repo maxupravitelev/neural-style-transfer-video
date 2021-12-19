@@ -27,18 +27,22 @@ class NeuralStyleTransferHandler:
         self.extracted_frames_path = extracted_frames_path
         self.input_video_filename = input_video_filename
 
-        parent_dir = 'output/stylized/'
+        parent_dir = 'output/stylized_frames/'
 
         self.stylized_frames_path = os.path.join(parent_dir, input_video_filename)
 
         if not os.path.exists(self.stylized_frames_path):
             try:
                 os.makedirs(self.stylized_frames_path)
-                log.debug(f'Output path for extracted frames: {self.stylized_frames_path}')
+                log.debug(f'Output path for stylized frames: {self.stylized_frames_path}')
             except Exception as e:
-                log.error(f'Output path for extracted frames FAILED: {e}')
+                log.error(f'Output path for stylized frames FAILED: {e}')
 
-        log.debug('FrameExtractor initialized')
+        log.debug('NeuralStyleTransferHandler initialized')
+
+
+    # TODO
+    # def create_subfolder(self):
 
 
     def crop_center(self, image):
@@ -52,7 +56,7 @@ class NeuralStyleTransferHandler:
         return image
 
 
-    def img_scaler(self, image, max_dim = 256):
+    def img_scaler(self, image, max_dim = 512):
 
         # Casts a tensor to a new type.
         original_shape = tf.cast(tf.shape(image)[:-1], tf.float32)
@@ -91,19 +95,17 @@ class NeuralStyleTransferHandler:
 
     def stylize_batch(self, mode:str,  place_in_folder: int):
 
+        foldername = self.extracted_frames_path
+        files_in_folder = len([file for file in os.listdir(f'{foldername}/')])
+
         if mode == "stylize_by_all_filters":
-            foldername = self.extracted_frames_path
-            files_in_folder = len([file for file in os.listdir(f'{foldername}/')])
             stylized_folder = f'output/stylized/{self.input_video_filename}_all_filter'
         else: 
-            foldername = self.extracted_frames_path
-            files_in_folder = len([file for file in os.listdir(f'{foldername}/')])
             stylized_folder = f'output/stylized/{self.input_video_filename}'
 
         if not os.path.exists(stylized_folder):
             os.mkdir(stylized_folder)
 
-        #  for i in range(0,60):
         for i in range(files_in_folder):
 
             if mode == 'stylize_by_all_filters':
@@ -127,7 +129,7 @@ class NeuralStyleTransferHandler:
 
             content_image = self.load_image(content_image_url, content_img_size)
             style_image = self.load_image(style_image_url, style_img_size)
-            print(style_image.shape)
+
             style_image = tf.nn.avg_pool(style_image, ksize=[3,3], strides=[1,1], padding='SAME')
 
 
@@ -137,6 +139,9 @@ class NeuralStyleTransferHandler:
             squeezed_image = tf.squeeze(stylized_image)
             
             tf.keras.preprocessing.image.save_img(f'{self.stylized_frames_path}/frame{i}.png', squeezed_image)
+            log.debug(f"{i} frames stylized")
+
+        return self.stylized_frames_path
 
 # stylize_batch("stylize_by_all_filters", 22)
 #stylize_batch("stylize_by_filter", 34)
