@@ -11,26 +11,35 @@ log = logging.getLogger(__name__)
 log.debug('Logging initialized')
 
 
-def main():
+input_file_path = "testvid.mp4" #@param {type:"string"}
+filter_path = "filter/67.jpg" #@param {type:"string"}
+output_max_size = 512 #@param {type:"number"}
+resize_factor = 2 #@param {type:"number"}
+use_superres = True #@param {type:"boolean"}
 
-    input_file_path: str = 'wave4.mp4'
-    filtername = 71
+
+def main():
 
     # extract frames in folder
     extracted_frames_path, input_video_filename = FrameExtractor(input_file_path).extract_frames()
 
     # nst all frames in folder
-    styled_frames_path = NeuralStyleTransferHandler(extracted_frames_path, input_video_filename).stylize_batch('stylize_by_filter', place_in_folder=filtername)
-    # styled_frames_path = NeuralStyleTransferHandler(extracted_frames_path='output/extracted_frames/1', input_video_filename='1').stylize_batch('stylize_by_filter', place_in_folder=70)
-
+    styled_frames_path = NeuralStyleTransferHandler(extracted_frames_path, input_video_filename, output_max_size).stylize_batch('stylize_by_filter', filter_path)
 
     # optional: resize all frames in folder
-    resized_frames_path = ImageResizer(styled_frames_path, input_video_filename).resize_superres(4)
-    # resized_frames_path = ImageResizer(styled_frames_path='output/stylized_frames/1', input_video_filename='1').resize(2)
+    if resize_factor is not 1:
+        if use_superres is True:
+            resized_frames_path = ImageResizer(styled_frames_path, input_video_filename).resize_superres(resize_factor)
+            styled_frames_path = resized_frames_path
+        else:
+            resized_frames_path = ImageResizer(styled_frames_path, input_video_filename).resize(resize_factor)
+            styled_frames_path = resized_frames_path
 
 
     # combine all frames in video file
-    test = FrameCombiner(styled_frames_path, input_video_filename).combine_frames(filtername)
+    output_video_path = FrameCombiner(styled_frames_path, input_video_filename).combine_frames(filter_path)
+
+
 
 if __name__ == "__main__":
     main()

@@ -9,20 +9,19 @@ log = logging.getLogger(__name__)
 
 
 class NeuralStyleTransferHandler:
-    def __init__(self, extracted_frames_path:str, input_video_filename:str) -> None:
+    def __init__(self, extracted_frames_path:str, input_video_filename:str, output_max_size:int) -> None:
         os.environ['CUDA_VISIBLE_DEVICES']='-1'    # disable gpu
 
-        log.debug('TF Version: ', tf.__version__)
-        log.debug('TF-Hub version: ', hub.__version__)
-        log.debug('Eager mode enabled: ', tf.executing_eagerly())
-        log.debug('GPU available: ', tf.config.list_physical_devices('GPU'))
-
-        # Load TF-Hub module
-
-        # TODO: check if downloaded and set up on first startup, load from local afterwards
-        #hub_handle = 'https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/2'
-        hub_handle = 'models/arbv1'
+        # Load model from TF-Hub
+        if not os.path.exists('tf_model/saved_model.pb'):
+            os.system('curl -L https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/2?tf-hub-format=compressed --output model.tar.gz')
+            os.system('mkdir tf_model')
+            os.system('tar -xf model.tar.gz -C tf_model/')
+        
+        hub_handle = 'tf_model/'
         self.hub_module = hub.load(hub_handle)
+
+        self.output_max_size = output_max_size
 
         self.extracted_frames_path = extracted_frames_path
         self.input_video_filename = input_video_filename
@@ -56,13 +55,13 @@ class NeuralStyleTransferHandler:
         return image
 
 
-    def img_scaler(self, image, max_dim = 512):
+    def img_scaler(self, image):
 
         # Casts a tensor to a new type.
         original_shape = tf.cast(tf.shape(image)[:-1], tf.float32)
 
         # Creates a scale constant for the image
-        scale_ratio = max_dim / max(original_shape)
+        scale_ratio = self.output_max_size / max(original_shape)
 
         # Casts a tensor to a new type.
         new_shape = tf.cast(original_shape * scale_ratio * 1, tf.int32)
@@ -93,7 +92,7 @@ class NeuralStyleTransferHandler:
 
 
 
-    def stylize_batch(self, mode:str,  place_in_folder: int):
+    def stylize_batch(self, mode:str,  filter_path: str):
 
         foldername = self.extracted_frames_path
         files_in_folder = len([file for file in os.listdir(f'{foldername}/')])
@@ -110,12 +109,12 @@ class NeuralStyleTransferHandler:
 
             if mode == 'stylize_by_all_filters':
 
-                content_image_url: str = f'{self.extracted_frames_path}/frame{place_in_folder}.png'
+                #content_image_url: str = f'{self.extracted_frames_path}/frame{place_in_folder}.png'
                 style_image_url: str = f'filter/{i}.jpg'  
             
             elif mode=='stylize_by_filter':
                 content_image_url: str = f'{self.extracted_frames_path}/frame{i}.png'
-                style_image_url: str = f'filter/{place_in_folder}.jpg' 
+                style_image_url: str = filter_path
             
             output_image_size: int = 512
 
