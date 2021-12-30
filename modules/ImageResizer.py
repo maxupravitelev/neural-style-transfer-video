@@ -82,6 +82,8 @@ class ImageResizer:
             
             log.debug(log.debug(f"{file_count} frames resized"))
 
+        return self.resized_frames_path
+
 
 
 
